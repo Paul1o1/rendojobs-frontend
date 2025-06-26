@@ -1,9 +1,28 @@
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 export default function Home() {
+  const [backendMessage, setBackendMessage] = useState("Loading...");
+
+  useEffect(() => {
+    const fetchBackendData = async () => {
+      try {
+        const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL || "");
+        const text = await response.text();
+        setBackendMessage(text);
+      } catch (error) {
+        console.error("Error fetching backend data:", error);
+        setBackendMessage("Error connecting to backend.");
+      }
+    };
+
+    fetchBackendData();
+  }, []);
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+        <h1 className="text-2xl font-bold">{backendMessage}</h1>
         <Image
           className="dark:invert"
           src="/next.svg"
