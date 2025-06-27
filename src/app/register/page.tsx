@@ -145,34 +145,51 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md text-center border border-gray-700">
         {!showRegistrationForm ? (
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">
+          <div className="flex flex-col items-center justify-center py-12">
+            <svg
+              className="w-24 h-24 text-indigo-400 mb-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 10h.01M19 10h.01M6 14h.01M18 14h.01M12 18h.01"
+              ></path>
+            </svg>
+            <h1 className="text-4xl font-extrabold mb-4 text-white">
               Get Started on Your Career Journey Today!
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-400 mb-8 text-lg leading-relaxed">
               Set up your professional profile and unlock new job opportunities.
+              Your dream job awaits!
             </p>
-            {telegramId && (
-              <button
-                onClick={() => setShowRegistrationForm(true)}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Set Up Your Profile
-              </button>
+            <button
+              onClick={() => setShowRegistrationForm(true)}
+              className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md shadow-lg text-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform hover:scale-105"
+            >
+              Set Up Your Profile
+            </button>
+            {error && (
+              <p className="text-red-400 mt-6 text-sm bg-gray-700 p-3 rounded-md animate-fade-in">
+                {error}
+              </p>
             )}
             {!telegramId && !error && (
-              <p className="text-gray-600 mt-4">
+              <p className="text-gray-500 mt-4 text-sm">
                 Loading Telegram user data...
               </p>
             )}
-            {error && <p className="text-red-500 mt-4">{error}</p>}
           </div>
         ) : (
           <>
-            <h1 className="text-2xl font-bold mb-6 text-center text-gray-800">
+            <h1 className="text-3xl font-bold mb-6 text-center text-white">
               Set Up Your Profile Today
             </h1>
             {message && (
