@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface TelegramUser {
   id: number;
@@ -63,24 +74,34 @@ export default function Register() {
   >({});
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 
   useEffect(() => {
-    if (window.Telegram && window.Telegram.WebApp) {
-      window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
-      const user = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (
+      typeof window !== "undefined" &&
+      window.Telegram &&
+      window.Telegram.WebApp
+    ) {
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+      const user = tg.initDataUnsafe?.user;
       if (user?.id) {
         setTelegramId(user.id.toString());
+        setFirstName(user.first_name || "");
+        setLastName(user.last_name || "");
       } else {
         setError(
           "Telegram User ID not found. Please open this app from Telegram."
         );
+        setTelegramId("mock_telegram_id_12345");
+        setMessage("Development Mode: Using mock Telegram ID.");
       }
     } else {
-      setError(
-        "Telegram WebApp object not found. Are you in a Telegram Mini App?"
+      console.warn(
+        "Telegram WebApp object not found. Running in development mode."
       );
+      setTelegramId("mock_telegram_id_12345");
+      setMessage("Development Mode: Telegram WebApp not found. Using mock ID.");
     }
   }, []);
 
@@ -112,10 +133,10 @@ export default function Register() {
     formData.append("email", email);
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
-    formData.append("dateOfBirth", dateOfBirth); // Should be in YYYY-MM-DD format for backend Date parsing
+    formData.append("dateOfBirth", dateOfBirth);
 
     if (cvFile) {
-      formData.append("cv", cvFile); // 'cv' is the field name for the file on the backend
+      formData.append("cv", cvFile);
     }
 
     formData.append("careerQuestions", JSON.stringify(careerQuestions));
@@ -123,15 +144,14 @@ export default function Register() {
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/jobseekers/register`,
-        formData, // Send formData directly for file uploads
+        formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data", // Important for file uploads
+            "Content-Type": "multipart/form-data",
           },
         }
       );
       setMessage(response.data.message);
-      // Optionally, redirect to profile page or show success message
     } catch (err: any) {
       console.error("Registration error:", err);
       if (err.response) {
@@ -145,207 +165,121 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md text-center border border-gray-700">
-        {!showRegistrationForm ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <svg
-              className="w-24 h-24 text-indigo-400 mb-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 10h.01M19 10h.01M6 14h.01M18 14h.01M12 18h.01"
-              ></path>
-            </svg>
-            <h1 className="text-4xl font-extrabold mb-4 text-white">
-              Get Started on Your Career Journey Today!
-            </h1>
-            <p className="text-gray-400 mb-8 text-lg leading-relaxed">
-              Set up your professional profile and unlock new job opportunities.
-              Your dream job awaits!
-            </p>
-            <button
-              onClick={() => setShowRegistrationForm(true)}
-              className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md shadow-lg text-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out transform hover:scale-105"
-            >
-              Set Up Your Profile
-            </button>
-            {error && (
-              <p className="text-red-400 mt-6 text-sm bg-gray-700 p-3 rounded-md animate-fade-in">
-                {error}
-              </p>
-            )}
-            {!telegramId && !error && (
-              <p className="text-gray-500 mt-4 text-sm">
-                Loading Telegram user data...
-              </p>
-            )}
-          </div>
-        ) : (
-          <>
-            <h1 className="text-3xl font-bold mb-6 text-center text-white">
-              Set Up Your Profile Today
-            </h1>
-            {message && (
-              <p className="text-green-500 text-center mb-4">{message}</p>
-            )}
-            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-
-            {telegramId && (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="phoneNumber"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="firstName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    First Name
-                  </label>
-                  <input
-                    type="text"
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+      <Card className="w-full max-w-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl">Set Up Your Profile</CardTitle>
+          <CardDescription>
+            Fill out the form below to get started with your job search.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {telegramId ? (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
                     id="firstName"
-                    name="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   />
                 </div>
-                <div>
-                  <label
-                    htmlFor="lastName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
                     id="lastName"
-                    name="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   />
                 </div>
-                <div>
-                  <label
-                    htmlFor="dateOfBirth"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    id="dateOfBirth"
-                    name="dateOfBirth"
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="cvFile"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Upload CV (PDF, DOCX)
-                  </label>
-                  <input
-                    type="file"
-                    id="cvFile"
-                    name="cvFile"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileChange}
-                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                  />
-                </div>
+              </div>
 
-                {/* Basic career questions - you can expand this significantly */}
-                <div>
-                  <label
-                    htmlFor="yearsOfExperience"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Years of Experience
-                  </label>
-                  <input
-                    type="number"
-                    id="yearsOfExperience"
-                    name="yearsOfExperience"
-                    value={careerQuestions.yearsOfExperience || ""}
-                    onChange={handleCareerQuestionChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="preferredRole"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Preferred Job Role
-                  </label>
-                  <input
-                    type="text"
-                    id="preferredRole"
-                    name="preferredRole"
-                    value={careerQuestions.preferredRole || ""}
-                    onChange={handleCareerQuestionChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
 
-                <button
-                  type="submit"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Register
-                </button>
-              </form>
-            )}
-          </>
-        )}
-      </div>
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cvFile">Upload CV (PDF, DOCX)</Label>
+                <Input
+                  id="cvFile"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                />
+                {cvFile && (
+                  <p className="text-sm text-muted-foreground">{cvFile.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="yearsOfExperience">Years of Experience</Label>
+                <Input
+                  id="yearsOfExperience"
+                  type="number"
+                  name="yearsOfExperience"
+                  value={careerQuestions.yearsOfExperience || ""}
+                  onChange={handleCareerQuestionChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="preferredRole">Preferred Job Role</Label>
+                <Input
+                  id="preferredRole"
+                  type="text"
+                  name="preferredRole"
+                  value={careerQuestions.preferredRole || ""}
+                  onChange={handleCareerQuestionChange}
+                />
+              </div>
+
+              <Button type="submit" className="w-full">
+                Register
+              </Button>
+            </form>
+          ) : (
+            <div className="flex justify-center items-center h-40">
+              <p>Loading profile...</p>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex-col items-center space-y-2">
+          {message && <p className="text-sm text-green-600">{message}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </CardFooter>
+      </Card>
     </div>
   );
 }
