@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import * as schema from "@/db/schema";
 
 export const auth = betterAuth({
+  url: process.env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
   },
