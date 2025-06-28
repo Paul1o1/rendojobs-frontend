@@ -20,7 +20,7 @@ export default function Home() {
             size="lg"
             className="transition-transform duration-300 ease-in-out hover:scale-105"
           >
-            <Link href="/register">Set Up Profile</Link>
+            <Link href="/role">Set Up Profile</Link>
           </Button>
         </div>
       </div>
