@@ -2,6 +2,9 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Briefcase, CheckCircle, Bookmark, User, XCircle } from "lucide-react";
 
+import { db } from "../../db/drizzle";
+import { user as users } from "../../db/schema";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import {
   Card,
@@ -13,6 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ProfileForm } from "./profile-form";
 
 // Dummy data for job listings - replace with actual data fetching
 const recommendedJobs = [
@@ -82,12 +86,25 @@ const JobCard = ({
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
-    headers: headers(),
+    headers: await headers(),
   });
 
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/auth");
   }
+
+  const [fullUser] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
+
+  if (!fullUser) {
+    // This case might happen if a user is deleted but their session still exists.
+    redirect("/auth");
+  }
+
+  const isProfileComplete = fullUser.profileComplete;
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
@@ -106,16 +123,16 @@ export default async function DashboardPage() {
             <TabsTrigger value="profile">
               <User className="mr-2 h-4 w-4" /> Profile
             </TabsTrigger>
-            <TabsTrigger value="recommended">
+            <TabsTrigger value="recommended" disabled={!isProfileComplete}>
               <Briefcase className="mr-2 h-4 w-4" /> Recommended
             </TabsTrigger>
-            <TabsTrigger value="shortlisted">
+            <TabsTrigger value="shortlisted" disabled={!isProfileComplete}>
               <Bookmark className="mr-2 h-4 w-4" /> Shortlisted
             </TabsTrigger>
-            <TabsTrigger value="accepted">
+            <TabsTrigger value="accepted" disabled={!isProfileComplete}>
               <CheckCircle className="mr-2 h-4 w-4" /> Accepted
             </TabsTrigger>
-            <TabsTrigger value="rejected">
+            <TabsTrigger value="rejected" disabled={!isProfileComplete}>
               <XCircle className="mr-2 h-4 w-4" /> Rejected
             </TabsTrigger>
           </TabsList>
@@ -125,29 +142,13 @@ export default async function DashboardPage() {
               <CardHeader>
                 <CardTitle>Your Profile</CardTitle>
                 <CardDescription>
-                  This is how employers will see you. Keep it up to date.
+                  {!isProfileComplete
+                    ? "Welcome! Please complete your profile to unlock all features."
+                    : "This is how employers will see you. Keep it up to date."}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={session.user.image || undefined} />
-                    <AvatarFallback>
-                      {session.user.name
-                        ? session.user.name.charAt(0).toUpperCase()
-                        : session.user.email.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h2 className="text-2xl font-semibold">
-                      {session.user.name || "User"}
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {session.user.email}
-                    </p>
-                  </div>
-                </div>
-                <Button>Edit Profile</Button>
+              <CardContent>
+                <ProfileForm user={fullUser} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -161,13 +162,9 @@ export default async function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {recommendedJobs.length > 0 ? (
-                  recommendedJobs.map((job, index) => (
-                    <JobCard key={index} {...job} />
-                  ))
-                ) : (
-                  <p>No recommended jobs at the moment.</p>
-                )}
+                {recommendedJobs.map((job, index) => (
+                  <JobCard key={index} {...job} />
+                ))}
               </CardContent>
             </Card>
           </TabsContent>
@@ -179,13 +176,9 @@ export default async function DashboardPage() {
                 <CardDescription>Jobs you've saved for later.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {shortlistedJobs.length > 0 ? (
-                  shortlistedJobs.map((job, index) => (
-                    <JobCard key={index} {...job} />
-                  ))
-                ) : (
-                  <p>You haven't shortlisted any jobs yet.</p>
-                )}
+                {shortlistedJobs.map((job, index) => (
+                  <JobCard key={index} {...job} />
+                ))}
               </CardContent>
             </Card>
           </TabsContent>
