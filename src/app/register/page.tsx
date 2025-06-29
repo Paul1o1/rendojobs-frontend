@@ -53,12 +53,6 @@ interface TelegramWebApp {
   offEvent: (eventType: string, callback: (...args: any[]) => void) => void;
 }
 
-declare global {
-  interface Window {
-    Telegram?: { WebApp: TelegramWebApp };
-  }
-}
-
 export default function Register() {
   const [telegramId, setTelegramId] = useState<string | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");

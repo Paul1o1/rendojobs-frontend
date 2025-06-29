@@ -1,11 +1,5 @@
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    Telegram?: { WebApp: TelegramWebApp };
-  }
-}
-
 export function useTelegramAutoLogin() {
   useEffect(() => {
     // Check for Telegram WebApp context
