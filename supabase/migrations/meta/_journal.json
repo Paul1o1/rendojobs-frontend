@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1751107440640,
-      "tag": "0000_talented_mongoose",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1751113604978,
-      "tag": "0001_mute_tusk",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1751116565703,
-      "tag": "0002_glamorous_dormammu",
+      "when": 1751135450198,
+      "tag": "0000_flat_mephisto",
       "breakpoints": true
     }
   ]
