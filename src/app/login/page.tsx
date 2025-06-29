@@ -7,12 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useTelegramAutoLogin } from "@/lib/useTelegramAutoLogin";
 
 export default function LoginPage() {
-  // Hook for auto-login when inside Telegram WebApp
-  useTelegramAutoLogin();
-
   const [tab, setTab] = useState("email");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
