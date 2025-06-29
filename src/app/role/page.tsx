@@ -21,7 +21,7 @@ export default function RoleSelection() {
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-        <Link href="/auth" className="group">
+        <Link href="/login" className="group">
           <Card className="h-full transform transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:border-primary">
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-2xl">
@@ -35,7 +35,7 @@ export default function RoleSelection() {
             </CardHeader>
           </Card>
         </Link>
-        <Link href="/auth" className="group">
+        <Link href="/login" className="group">
           <Card className="h-full transform transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:border-primary">
             <CardHeader>
               <CardTitle className="flex items-center justify-between text-2xl">
