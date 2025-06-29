@@ -1,23 +1,44 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-export function useTelegramAutoLogin() {
+// The URL for your Render backend. This should be an environment variable.
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "https://rendojobs-backend.onrender.com";
+
+export function TelegramProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [debugMessage, setDebugMessage] = useState("Initializing...");
 
   useEffect(() => {
-    console.log("TelegramProvider: Hook started on path:", pathname);
-
     const jwt = localStorage.getItem("jwt");
     if (jwt) {
-      console.log("TelegramProvider: JWT found in localStorage. Skipping.");
+      setDebugMessage("JWT found. Logged in.");
       return;
     }
 
+    // --- Build Debug Message ---
+    let dbg = "Status: ";
+    if (typeof window === "undefined") {
+      dbg += "No window. ";
+    } else if (!window.Telegram) {
+      dbg += "No window.Telegram. ";
+    } else if (!window.Telegram.WebApp) {
+      dbg += "No window.Telegram.WebApp. ";
+    } else if (!window.Telegram.WebApp.initData) {
+      dbg += `initData is empty or missing. Length: ${
+        window.Telegram.WebApp.initData?.length ?? "N/A"
+      }. `;
+    } else {
+      dbg += "initData found! Attempting login...";
+    }
+    setDebugMessage(dbg);
+    // --- End Build Debug Message ---
+
     if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
-      console.log("TelegramProvider: On login/register page. Skipping.");
       return;
     }
 
@@ -27,48 +48,56 @@ export function useTelegramAutoLogin() {
       window.Telegram.WebApp &&
       window.Telegram.WebApp.initData
     ) {
-      console.log("TelegramProvider: Telegram WebApp context found.");
       const tgData = window.Telegram.WebApp.initData;
-      console.log("TelegramProvider: Sending initData to API.");
 
-      fetch("/api/telegram-login", {
+      fetch(`${BACKEND_URL}/api/telegram-login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ initData: tgData }),
       })
         .then((res) => res.json())
         .then((data) => {
-          console.log("TelegramProvider: Received response from API:", data);
           if (data.success && data.token) {
-            console.log(
-              "TelegramProvider: Login successful. Storing JWT and redirecting to /dashboard."
-            );
+            setDebugMessage("Login successful! Redirecting...");
             localStorage.setItem("jwt", data.token);
             router.push("/dashboard");
           } else {
-            console.error(
-              "TelegramProvider: API call failed or returned no token.",
-              data.error
-            );
+            setDebugMessage(`Login failed: ${data.error}`);
             router.push("/login");
           }
         })
         .catch((err) => {
-          console.error("TelegramProvider: Fetch failed.", err);
+          setDebugMessage(`Fetch Error: ${err.message}`);
           router.push("/login");
         });
     } else {
-      console.log(
-        "TelegramProvider: Not in Telegram context and no JWT. Redirecting to login if necessary."
-      );
-      if (!jwt && !pathname.startsWith("/role") && pathname !== "/") {
+      if (!pathname.startsWith("/role") && pathname !== "/") {
         router.push("/login");
       }
     }
   }, [pathname, router]);
-}
 
-export function TelegramProvider({ children }: { children: React.ReactNode }) {
-  useTelegramAutoLogin();
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "10px",
+          left: "10px",
+          backgroundColor: "rgba(0,0,0,0.8)",
+          color: "white",
+          padding: "8px",
+          borderRadius: "5px",
+          zIndex: 9999,
+          fontSize: "11px",
+          maxWidth: "calc(100% - 20px)",
+          fontFamily: "monospace",
+          pointerEvents: "none",
+        }}
+      >
+        {debugMessage}
+      </div>
+    </>
+  );
 }
