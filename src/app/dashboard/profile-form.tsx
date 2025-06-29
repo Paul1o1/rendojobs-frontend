@@ -95,7 +95,7 @@ export function ProfileForm({ user }: { user: User }) {
 
           <div className="space-y-2">
             <FormLabel>Email</FormLabel>
-            <Input value={user.email} disabled />
+            <Input value={user.email ?? ""} disabled />
             <FormDescription>
               Your email address is not editable.
             </FormDescription>
