@@ -29,9 +29,7 @@ export function TelegramProvider({ children }: { children: React.ReactNode }) {
     } else if (!window.Telegram.WebApp) {
       dbg += "No window.Telegram.WebApp. ";
     } else if (!window.Telegram.WebApp.initData) {
-      dbg += `initData is empty or missing. Length: ${
-        window.Telegram.WebApp.initData?.length ?? "N/A"
-      }. `;
+      dbg += `initData is empty. (This is expected if you are the bot owner). `;
     } else {
       dbg += "initData found! Attempting login...";
     }
