@@ -8,15 +8,16 @@ export function useTelegramAutoLogin() {
   const pathname = usePathname();
 
   useEffect(() => {
+    console.log("TelegramProvider: Hook started on path:", pathname);
+
     const jwt = localStorage.getItem("jwt");
     if (jwt) {
-      // If user is already authenticated, no need to run the logic.
-      // You might want to add a check here to validate the JWT with the backend.
+      console.log("TelegramProvider: JWT found in localStorage. Skipping.");
       return;
     }
 
-    // Only run this logic if we're not already on the login/register pages
     if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
+      console.log("TelegramProvider: On login/register page. Skipping.");
       return;
     }
 
@@ -26,7 +27,9 @@ export function useTelegramAutoLogin() {
       window.Telegram.WebApp &&
       window.Telegram.WebApp.initData
     ) {
+      console.log("TelegramProvider: Telegram WebApp context found.");
       const tgData = window.Telegram.WebApp.initData;
+      console.log("TelegramProvider: Sending initData to API.");
 
       fetch("/api/telegram-login", {
         method: "POST",
@@ -35,21 +38,30 @@ export function useTelegramAutoLogin() {
       })
         .then((res) => res.json())
         .then((data) => {
+          console.log("TelegramProvider: Received response from API:", data);
           if (data.success && data.token) {
+            console.log(
+              "TelegramProvider: Login successful. Storing JWT and redirecting to /dashboard."
+            );
             localStorage.setItem("jwt", data.token);
             router.push("/dashboard");
           } else {
-            // If auth fails, redirect to login.
-            // This prevents non-Telegram users from getting stuck.
+            console.error(
+              "TelegramProvider: API call failed or returned no token.",
+              data.error
+            );
             router.push("/login");
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error("TelegramProvider: Fetch failed.", err);
           router.push("/login");
         });
     } else {
-      // If not in Telegram context and no JWT, redirect to login
-      if (!pathname.startsWith("/role") && pathname !== "/") {
+      console.log(
+        "TelegramProvider: Not in Telegram context and no JWT. Redirecting to login if necessary."
+      );
+      if (!jwt && !pathname.startsWith("/role") && pathname !== "/") {
         router.push("/login");
       }
     }
