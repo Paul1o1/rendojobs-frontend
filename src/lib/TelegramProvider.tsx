@@ -17,6 +17,10 @@ export function useTelegramAutoLogin() {
       return;
     }
 
+    if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
+      return;
+    }
+
     // Give the Telegram script a moment to initialize
     setTimeout(() => {
       if (
@@ -62,5 +66,76 @@ export function useTelegramAutoLogin() {
 
 export function TelegramProvider({ children }: { children: React.ReactNode }) {
   useTelegramAutoLogin();
-  return <>{children}</>;
+  return (
+    <>
+      <EnhancedDebugger />
+      {children}
+    </>
+  );
+}
+
+function EnhancedDebugger() {
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const getDebugInfo = () => {
+      if (typeof window !== "undefined") {
+        if (!window.Telegram || !window.Telegram.WebApp) {
+          return { status: "No window.Telegram.WebApp object" };
+        }
+        const webApp = window.Telegram.WebApp as any;
+        return {
+          status: webApp.initData
+            ? "initData Present"
+            : "initData is EMPTY or missing",
+          initData: webApp.initData,
+          initDataUnsafe: webApp.initDataUnsafe,
+          version: webApp.version,
+          platform: webApp.platform,
+          colorScheme: webApp.colorScheme,
+          themeParams: webApp.themeParams,
+          isExpanded: webApp.isExpanded,
+          viewportHeight: webApp.viewportHeight,
+          viewportStableHeight: webApp.viewportStableHeight,
+          headerColor: webApp.headerColor,
+          backgroundColor: webApp.backgroundColor,
+          isClosingConfirmationEnabled: webApp.isClosingConfirmationEnabled,
+        };
+      }
+      return { status: "window object not found" };
+    };
+
+    const timer = setTimeout(() => {
+      setDebugInfo(getDebugInfo());
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!debugInfo) {
+    return null;
+  }
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: "10px",
+        left: "10px",
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        color: "white",
+        padding: "10px",
+        borderRadius: "5px",
+        zIndex: 9999,
+        fontSize: "12px",
+        maxWidth: "90%",
+        maxHeight: "40vh",
+        overflow: "auto",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-all",
+      }}
+    >
+      <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+    </div>
+  );
 }
