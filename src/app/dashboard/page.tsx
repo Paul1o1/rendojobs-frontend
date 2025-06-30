@@ -11,24 +11,30 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const token =
+    const storedToken =
       typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
-    if (!token) {
-      setError("Not authenticated");
+    setToken(storedToken);
+
+    if (!storedToken) {
+      setError("Not authenticated: No JWT found in localStorage.");
       setLoading(false);
       return;
     }
+
     const cacheBust = `t=${new Date().getTime()}`;
     fetch(`${BACKEND_URL}/api/protected?${cacheBust}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${storedToken}`,
       },
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch user data");
+          throw new Error(
+            `Failed to fetch user data. Status: ${res.status} ${res.statusText}`
+          );
         }
         return res.json();
       })
@@ -36,18 +42,39 @@ export default function DashboardPage() {
         if (data.success) {
           setUser(data.user);
         } else {
-          setError(data.error || "Unknown error");
+          setError(
+            `Backend error: ${data.error || "Unknown error from server"}`
+          );
         }
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || "Failed to fetch user info");
+        setError(`Client-side fetch error: ${err.message}`);
         setLoading(false);
       });
   }, []);
 
   if (loading) return <div>Loading dashboard...</div>;
-  if (error) return <div>{error}</div>;
+  if (error) {
+    return (
+      <div className="p-4">
+        <h1 className="text-red-500 font-bold">Error</h1>
+        <p>{error}</p>
+        <h2 className="mt-4 font-bold">Token Used:</h2>
+        <pre
+          style={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-all",
+            backgroundColor: "#f0f0f0",
+            padding: "8px",
+            borderRadius: "4px",
+          }}
+        >
+          {token || "No token"}
+        </pre>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
