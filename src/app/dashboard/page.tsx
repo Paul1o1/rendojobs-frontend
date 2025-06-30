@@ -20,7 +20,8 @@ export default function DashboardPage() {
       setLoading(false);
       return;
     }
-    fetch(`${BACKEND_URL}/api/protected`, {
+    const cacheBust = `&t=${new Date().getTime()}`;
+    fetch(`${BACKEND_URL}/api/protected?${cacheBust}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
