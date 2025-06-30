@@ -25,7 +25,7 @@ export default function DashboardPage() {
     }
 
     const cacheBust = `t=${new Date().getTime()}`;
-    fetch(`${BACKEND_URL}/api/protected?${cacheBust}`, {
+    fetch(`${BACKEND_URL}/api/user-profile?${cacheBust}`, {
       headers: {
         Authorization: `Bearer ${storedToken}`,
       },
