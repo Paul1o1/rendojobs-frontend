@@ -55,7 +55,7 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/ping`)
+    fetch(`${BACKEND_URL.replace(/\/$/, "")}/api/ping`)
       .then((res) => res.json())
       .then((data) => {
         alert("Backend says: " + JSON.stringify(data));
