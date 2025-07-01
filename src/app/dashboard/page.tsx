@@ -54,17 +54,6 @@ export default function DashboardPage() {
       });
   }, []);
 
-  useEffect(() => {
-    fetch(`${BACKEND_URL.replace(/\/$/, "")}/api/ping`)
-      .then((res) => res.json())
-      .then((data) => {
-        alert("Backend says: " + JSON.stringify(data));
-      })
-      .catch((err) => {
-        alert("Failed to reach backend: " + err.message);
-      });
-  }, []);
-
   if (loading) return <div>Loading dashboard...</div>;
   if (error) {
     return (
